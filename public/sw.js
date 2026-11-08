@@ -1,16 +1,23 @@
-const CACHE_NAME = 'make-money-cache-v1';
+const CACHE_NAME = 'make-money-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
 ];
 
 // Install Event
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          console.warn('SW cache failed for asset:', asset, e);
+        }
+      }
     })
   );
   self.skipWaiting();
@@ -41,7 +48,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API calls: Network first, fall back to offline message if failed
+  // API calls: Network first, fall back to offline JSON if failed
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -95,4 +102,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-

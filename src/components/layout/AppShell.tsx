@@ -63,10 +63,10 @@ export const AppShell: React.FC = () => {
     });
 
     // 5. Register Service Worker for PWA
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker
-        .register('/sw.js')
-        .then(() => console.log('PWA Service Worker registered'))
+        .register('/sw.js', { scope: '/' })
+        .then((reg) => console.log('PWA Service Worker registered with scope:', reg.scope))
         .catch((err) => console.warn('SW registration failed:', err));
     }
 
