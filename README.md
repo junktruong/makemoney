@@ -144,3 +144,4 @@ pnpm start
 - **Idempotency**: Mọi giao dịch tài chính và đồng bộ đều mang `idempotencyKey` duy nhất, ngăn ngừa hoàn toàn tình trạng ghi đè hoặc cộng dồn 2 lần do mạng chập chờn.
 - **Không lưu Base64 trong MongoDB**: Tránh làm phình database và chậm queries; ảnh được quản lý qua GridFS chunks và streams.
 - **An toàn ngoại tuyến**: Ứng dụng không bao giờ âm thầm xóa hay làm mất các bản ghi tài chính chưa đồng bộ khi dọn dẹp cache.
+# makemoney
