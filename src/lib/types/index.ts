@@ -121,3 +121,4 @@ export interface StorageStats {
   syncedImagesCount: number;
   lastSyncedAt: string | null;
 }
+

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { WishlistGallery } from './WishlistGallery';
+import { ImageUploader } from './ImageUploader';
 import { PriorityBadge, StatusBadge } from '../common/Badge';
 import { ProgressBar } from '../common/ProgressBar';
 import { formatVND, computeGoalProjection } from '@/lib/services/financialService';
@@ -12,16 +13,16 @@ import { useAppStore } from '@/lib/store/useAppStore';
 import confetti from 'canvas-confetti';
 import {
   Calendar,
-  Clock,
-  TrendingUp,
   Coins,
   CheckCircle2,
   Trash2,
   Edit,
-  Archive,
   AlertTriangle,
   Sparkles,
-  ArrowRight,
+  Camera,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
 } from 'lucide-react';
 
 interface WishlistDetailModalProps {
@@ -33,6 +34,7 @@ export const WishlistDetailModal: React.FC<WishlistDetailModalProps> = ({ onEdit
   const { dailyRecords } = useSavingsStore();
   const { openAllocationModal, showToast } = useAppStore();
   const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+  const [showAddImage, setShowAddImage] = useState<boolean>(false);
 
   if (!selectedItem) return null;
 
@@ -62,6 +64,7 @@ export const WishlistDetailModal: React.FC<WishlistDetailModalProps> = ({ onEdit
       onClose={() => {
         setSelectedItem(null);
         setConfirmDelete(false);
+        setShowAddImage(false);
       }}
       title={selectedItem.name}
       subtitle={selectedItem.category || 'Mục tiêu cá nhân'}
@@ -72,7 +75,30 @@ export const WishlistDetailModal: React.FC<WishlistDetailModalProps> = ({ onEdit
         <WishlistGallery
           images={selectedItem.images || []}
           itemName={selectedItem.name}
+          wishlistItemId={selectedItem.id}
         />
+
+        {/* Quick Add / Manage Photos button */}
+        <div className="pt-0.5">
+          <button
+            type="button"
+            onClick={() => setShowAddImage((prev) => !prev)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>{showAddImage ? 'Đóng trình quản lý ảnh' : '+ Thêm / Quản lý ảnh'}</span>
+            {showAddImage ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          {showAddImage && (
+            <div className="mt-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 animate-in fade-in duration-200">
+              <ImageUploader
+                wishlistItemId={selectedItem.id}
+                images={selectedItem.images || []}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Badges & Meta */}
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -135,7 +161,7 @@ export const WishlistDetailModal: React.FC<WishlistDetailModalProps> = ({ onEdit
           </div>
         </div>
 
-        {/* Section 11: Goal Planner Projections */}
+        {/* Goal Planner Projections */}
         {!isCompleted && (
           <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/20 space-y-3">
             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">

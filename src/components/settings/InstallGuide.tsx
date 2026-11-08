@@ -93,3 +93,4 @@ export const InstallGuide: React.FC = () => {
     </div>
   );
 };
+

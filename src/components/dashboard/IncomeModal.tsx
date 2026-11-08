@@ -130,3 +130,4 @@ export const IncomeModal: React.FC = () => {
     </Modal>
   );
 };
+

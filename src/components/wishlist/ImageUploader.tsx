@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { processImageFile, validateImageFile } from '@/lib/services/imageService';
 import { useWishlistStore } from '@/lib/store/useWishlistStore';
 import { ImageBlobPreview } from '../common/ImageBlobPreview';
-import { Camera, Upload, Trash2, Star, Loader2, Plus } from 'lucide-react';
+import { Camera, Upload, Trash2, Star, Loader2 } from 'lucide-react';
 import { ImageMetadata } from '@/lib/types';
 
 interface ImageUploaderProps {
@@ -30,6 +30,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     setIsProcessing(true);
 
     try {
+      const updatedList = [...images];
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const validation = validateImageFile(file);
@@ -39,14 +41,24 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         }
 
         const processed = await processImageFile(file);
-        await saveImageLocally(
+        const isPrimary = updatedList.length === 0;
+
+        const newMeta = await saveImageLocally(
           wishlistItemId,
           processed.originalBlob,
           processed.thumbnailBlob,
           file.name,
           processed.mimeType,
-          images.length === 0 && i === 0
+          isPrimary
         );
+
+        if (newMeta) {
+          updatedList.push(newMeta);
+        }
+      }
+
+      if (onImagesChange) {
+        onImagesChange(updatedList);
       }
     } catch (err: any) {
       setErrorMsg('Lỗi xử lý ảnh: ' + err.message);
@@ -73,6 +85,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleDelete = async (imageId: string) => {
     await removeImageLocally(wishlistItemId, imageId);
+    const remaining = images.filter((img) => img.imageId !== imageId);
+    if (onImagesChange) {
+      onImagesChange(remaining);
+    }
   };
 
   return (
@@ -123,7 +139,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
 
         <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
-          Hỗ trợ JPG, PNG, WebP. Tự động nén và lưu ngoại tuyến IndexedDB.
+          Hỗ trợ JPG, PNG, WebP. Tự động nén và lưu ngoại tuyến IndexedDB bền vững.
         </p>
 
         {isProcessing && (
@@ -150,6 +166,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             >
               <ImageBlobPreview
                 imageId={img.imageId}
+                wishlistItemId={wishlistItemId}
                 gridFsFileId={img.gridFsFileId}
                 thumbnailGridFsFileId={img.thumbnailGridFsFileId}
                 alt={img.originalFilename}

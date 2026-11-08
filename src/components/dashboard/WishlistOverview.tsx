@@ -75,6 +75,7 @@ export const WishlistOverview: React.FC = () => {
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200/60 dark:border-slate-800">
                     <ImageBlobPreview
                       imageId={primaryImg?.imageId}
+                      wishlistItemId={item.id}
                       gridFsFileId={primaryImg?.gridFsFileId}
                       thumbnailGridFsFileId={primaryImg?.thumbnailGridFsFileId}
                       alt={item.name}
@@ -143,3 +144,4 @@ export const WishlistOverview: React.FC = () => {
     </div>
   );
 };
+

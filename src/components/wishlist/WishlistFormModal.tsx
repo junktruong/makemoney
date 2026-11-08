@@ -34,9 +34,9 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
   const [tempImages, setTempImages] = useState<ImageMetadata[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Temporary ID for new items so images can be attached immediately before saving
-  const [activeItemId, setActiveItemId] = useState<string>(
-    `wish_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+  // Consistent ID for item so images uploaded before submitting are permanently attached to this ID
+  const [activeItemId, setActiveItemId] = useState<string>(() =>
+    `wish_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
   );
 
   useEffect(() => {
@@ -51,9 +51,9 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
         setTargetDays(editItem.targetDays || 30);
         setCategory(editItem.category || 'Công nghệ');
         setNotes(editItem.notes || '');
-        setTempImages(editItem.images || []);
+        setTempImages(editItem.images ? [...editItem.images] : []);
       } else {
-        const newId = `wish_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        const newId = `wish_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         setActiveItemId(newId);
         setName('');
         setTargetPrice(0);
@@ -112,10 +112,12 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
           targetDays,
           category,
           notes: notes.trim(),
+          images: tempImages,
         });
         showToast('Đã cập nhật nguyện vọng!', 'success');
       } else {
         await addItem({
+          id: activeItemId, // Crucial: preserves activeItemId so uploaded images remain attached!
           name: name.trim(),
           targetPrice,
           description: description.trim(),

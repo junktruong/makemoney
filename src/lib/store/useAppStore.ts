@@ -96,3 +96,4 @@ export const useAppStore = create<AppState>((set) => ({
   },
   hideToast: () => set({ toast: null }),
 }));
+

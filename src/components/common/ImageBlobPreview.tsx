@@ -7,16 +7,17 @@ import { Image as ImageIcon } from 'lucide-react';
 
 interface ImageBlobPreviewProps {
   imageId?: string;
+  wishlistItemId?: string;
   gridFsFileId?: string;
   thumbnailGridFsFileId?: string;
   alt?: string;
   className?: string;
   useThumbnail?: boolean;
-  priority?: boolean;
 }
 
 export const ImageBlobPreview: React.FC<ImageBlobPreviewProps> = ({
   imageId,
+  wishlistItemId,
   gridFsFileId,
   thumbnailGridFsFileId,
   alt = 'Hình ảnh sản phẩm',
@@ -31,50 +32,93 @@ export const ImageBlobPreview: React.FC<ImageBlobPreviewProps> = ({
     let isMounted = true;
 
     async function resolveImageSrc() {
-      if (!imageId && !gridFsFileId && !thumbnailGridFsFileId) {
-        setLoading(false);
-        setHasError(true);
-        return;
-      }
-
       setLoading(true);
       setHasError(false);
 
-      // 1. First priority: Check Dexie IndexedDB for instant offline access
+      // 1. Priority 1: Check Dexie IndexedDB by imageId
       if (imageId) {
         try {
           const localRecord = await db.images.get(imageId);
           if (localRecord && isMounted) {
-            const blobToUse = useThumbnail && localRecord.thumbnailBlob
-              ? localRecord.thumbnailBlob
-              : localRecord.blob;
+            const blobToUse =
+              useThumbnail && localRecord.thumbnailBlob
+                ? localRecord.thumbnailBlob
+                : localRecord.blob || localRecord.thumbnailBlob;
 
             if (blobToUse) {
+              const safeBlob =
+                blobToUse instanceof Blob
+                  ? blobToUse
+                  : new Blob([blobToUse], { type: localRecord.mimeType || 'image/jpeg' });
+
               const url = getObjectUrlForBlob(
-                useThumbnail ? `${imageId}_thumb` : imageId,
-                blobToUse
+                useThumbnail ? `${localRecord.id}_thumb` : localRecord.id,
+                safeBlob
               );
-              setSrc(url);
-              setLoading(false);
-              return;
+
+              if (url) {
+                setSrc(url);
+                setLoading(false);
+                return;
+              }
             }
           }
         } catch (dexieErr) {
-          console.warn('Dexie read failed:', dexieErr);
+          console.warn('Dexie read by imageId failed:', dexieErr);
         }
       }
 
-      // 2. Second priority: Server GridFS URL
+      // 2. Priority 2: Check Dexie IndexedDB by wishlistItemId fallback
+      if (wishlistItemId) {
+        try {
+          const localRecord = await db.images.where({ wishlistItemId }).first();
+          if (localRecord && isMounted) {
+            const blobToUse =
+              useThumbnail && localRecord.thumbnailBlob
+                ? localRecord.thumbnailBlob
+                : localRecord.blob || localRecord.thumbnailBlob;
+
+            if (blobToUse) {
+              const safeBlob =
+                blobToUse instanceof Blob
+                  ? blobToUse
+                  : new Blob([blobToUse], { type: localRecord.mimeType || 'image/jpeg' });
+
+              const url = getObjectUrlForBlob(
+                useThumbnail ? `${localRecord.id}_thumb` : localRecord.id,
+                safeBlob
+              );
+
+              if (url) {
+                setSrc(url);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        } catch (dexieErr) {
+          console.warn('Dexie read by wishlistItemId failed:', dexieErr);
+        }
+      }
+
+      // 3. Priority 3: Server GridFS URL
       const fileId = useThumbnail
         ? thumbnailGridFsFileId || gridFsFileId || imageId
         : gridFsFileId || imageId;
 
       if (fileId && isMounted) {
-        const endpoint = useThumbnail && thumbnailGridFsFileId
-          ? `/api/images/${fileId}/thumbnail`
-          : `/api/images/${fileId}`;
+        const endpoint =
+          useThumbnail && thumbnailGridFsFileId
+            ? `/api/images/${fileId}/thumbnail`
+            : `/api/images/${fileId}`;
         setSrc(endpoint);
         setLoading(false);
+        return;
+      }
+
+      if (isMounted) {
+        setLoading(false);
+        setHasError(true);
       }
     }
 
@@ -83,7 +127,7 @@ export const ImageBlobPreview: React.FC<ImageBlobPreviewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [imageId, gridFsFileId, thumbnailGridFsFileId, useThumbnail]);
+  }, [imageId, wishlistItemId, gridFsFileId, thumbnailGridFsFileId, useThumbnail]);
 
   if (loading) {
     return (

@@ -90,3 +90,4 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
     </div>
   );
 };
+

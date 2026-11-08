@@ -13,12 +13,18 @@ export interface ProcessedImageResult {
 const objectUrlCache = new Map<string, string>();
 
 export function getObjectUrlForBlob(id: string, blob: Blob): string {
-  if (objectUrlCache.has(id)) {
-    return objectUrlCache.get(id)!;
+  try {
+    if (objectUrlCache.has(id)) {
+      return objectUrlCache.get(id)!;
+    }
+    const safeBlob = blob instanceof Blob ? blob : new Blob([blob], { type: 'image/jpeg' });
+    const url = URL.createObjectURL(safeBlob);
+    objectUrlCache.set(id, url);
+    return url;
+  } catch (err) {
+    console.warn('URL.createObjectURL failed:', err);
+    return '';
   }
-  const url = URL.createObjectURL(blob);
-  objectUrlCache.set(id, url);
-  return url;
 }
 
 export function revokeObjectUrl(id: string): void {
@@ -37,7 +43,7 @@ export function clearObjectUrlCache(): void {
 /**
  * Validates file type and size
  */
-export function validateImageFile(file: File, maxSizeBytes = 10 * 1024 * 1024): { valid: boolean; error?: string } {
+export function validateImageFile(file: File, maxSizeBytes = 15 * 1024 * 1024): { valid: boolean; error?: string } {
   const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
   if (!validTypes.includes(file.type.toLowerCase()) && !file.name.match(/\.(jpe?g|png|webp|gif|heic|heif)$/i)) {
     return { valid: false, error: 'Chỉ chấp nhận file ảnh (JPG, PNG, WebP, GIF, HEIC)' };
@@ -109,15 +115,23 @@ export async function processImageFile(
 
         thumbCtx.drawImage(img, sx, sy, minDim, minDim, 0, 0, thumbnailSize, thumbnailSize);
 
-        // Output blobs
-        const mimeType = 'image/webp'; // standard efficient format
+        // Use JPEG for universal 100% browser compatibility (iOS Safari, Android Chrome, Desktop)
+        const mimeType = 'image/jpeg';
 
         const mainBlobPromise = new Promise<Blob>((res, rej) => {
-          mainCanvas.toBlob((b) => (b ? res(b) : rej(new Error('Failed to create main blob'))), mimeType, quality);
+          mainCanvas.toBlob(
+            (b) => (b ? res(b) : rej(new Error('Failed to create main blob'))),
+            mimeType,
+            quality
+          );
         });
 
         const thumbBlobPromise = new Promise<Blob>((res, rej) => {
-          thumbCanvas.toBlob((b) => (b ? res(b) : rej(new Error('Failed to create thumbnail blob'))), mimeType, 0.8);
+          thumbCanvas.toBlob(
+            (b) => (b ? res(b) : rej(new Error('Failed to create thumbnail blob'))),
+            mimeType,
+            0.8
+          );
         });
 
         const [originalBlob, thumbnailBlob] = await Promise.all([mainBlobPromise, thumbBlobPromise]);
@@ -137,7 +151,7 @@ export async function processImageFile(
 
     img.onerror = () => {
       URL.revokeObjectURL(tempUrl);
-      reject(new Error('Không thể tải file hình ảnh'));
+      reject(new Error('Không thể đọc file hình ảnh'));
     };
 
     img.src = tempUrl;

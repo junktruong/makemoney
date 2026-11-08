@@ -205,3 +205,4 @@ export const WishlistView: React.FC = () => {
     </div>
   );
 };
+

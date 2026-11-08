@@ -60,3 +60,4 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
 export function isMongoConnected(): boolean {
   return mongoose.connection.readyState === 1;
 }
+

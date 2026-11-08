@@ -199,3 +199,4 @@ export async function syncWithServer(): Promise<{ success: boolean; error?: stri
     isSyncing--;
   }
 }
+

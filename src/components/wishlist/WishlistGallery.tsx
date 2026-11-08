@@ -8,9 +8,14 @@ import { ChevronLeft, ChevronRight, Maximize2, X, Image as ImageIcon } from 'luc
 interface WishlistGalleryProps {
   images: ImageMetadata[];
   itemName: string;
+  wishlistItemId?: string;
 }
 
-export const WishlistGallery: React.FC<WishlistGalleryProps> = ({ images, itemName }) => {
+export const WishlistGallery: React.FC<WishlistGalleryProps> = ({
+  images,
+  itemName,
+  wishlistItemId,
+}) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
@@ -44,6 +49,7 @@ export const WishlistGallery: React.FC<WishlistGalleryProps> = ({ images, itemNa
       >
         <ImageBlobPreview
           imageId={currentImage.imageId}
+          wishlistItemId={wishlistItemId}
           gridFsFileId={currentImage.gridFsFileId}
           thumbnailGridFsFileId={currentImage.thumbnailGridFsFileId}
           alt={itemName}
@@ -93,6 +99,7 @@ export const WishlistGallery: React.FC<WishlistGalleryProps> = ({ images, itemNa
             >
               <ImageBlobPreview
                 imageId={img.imageId}
+                wishlistItemId={wishlistItemId}
                 gridFsFileId={img.gridFsFileId}
                 thumbnailGridFsFileId={img.thumbnailGridFsFileId}
                 alt={`${itemName} ${idx + 1}`}
@@ -127,6 +134,7 @@ export const WishlistGallery: React.FC<WishlistGalleryProps> = ({ images, itemNa
           >
             <ImageBlobPreview
               imageId={currentImage.imageId}
+              wishlistItemId={wishlistItemId}
               gridFsFileId={currentImage.gridFsFileId}
               alt={itemName}
               useThumbnail={false}
