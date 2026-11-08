@@ -145,3 +145,4 @@ pnpm start
 - **Không lưu Base64 trong MongoDB**: Tránh làm phình database và chậm queries; ảnh được quản lý qua GridFS chunks và streams.
 - **An toàn ngoại tuyến**: Ứng dụng không bao giờ âm thầm xóa hay làm mất các bản ghi tài chính chưa đồng bộ khi dọn dẹp cache.
 # makemoney
+# makemoney
